@@ -9,105 +9,103 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    
-   
     
     
-    
+    @IBOutlet weak var display: UILabel!
+    @IBOutlet weak var historyLabel: UILabel!
     
     var userIsInTheMiddleOfTypingANumber: Bool = false
-    
     var brain = CaculatorBrain()
+    let decimalSeparator = NSNumberFormatter().decimalSeparator!
     
-    @IBAction func appendDigit(sender: AnyObject) {
+    
+    @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
-        if (digit == "Pi") {
-            var pi = M_PI
-            if userIsInTheMiddleOfTypingANumber {
-                display.text = display.text! + (NSString(format: "%.2f", pi) as String)
+        if userIsInTheMiddleOfTypingANumber {
+            if (digit == decimalSeparator) && (display.text!.rangeOfString(decimalSeparator) != nil) {
+                return
+            }
+            if (digit == "0") && ((display.text == "0") || (display.text == "-0")){
+                return
+            }
+            if (digit != decimalSeparator) && ((display.text == "0") || (display.text
+                == "-0")) {
+                    if (display.text == "0") {
+                        display.text = digit
+                    } else {
+                        display.text = "-" + digit
+                    }
             } else {
-                display.text = NSString(format: "%.2f", pi) as String
-                userIsInTheMiddleOfTypingANumber = true
+                display.text = display.text! + digit
             }
         } else {
-            if userIsInTheMiddleOfTypingANumber {
-                display.text = display.text! + digit!
+            if digit == decimalSeparator {
+                display.text = "0" + decimalSeparator
             } else {
                 display.text = digit
-                userIsInTheMiddleOfTypingANumber = true
             }
-
+            userIsInTheMiddleOfTypingANumber = true
+            historyLabel.text = brain.showStack()
         }
+        
     }
-    
-    var operandStack: Array<Double> = Array<Double>()
-    
-    @IBAction func digitOperation(sender: UIButton) {
-    
-    }
-    
+   
     @IBAction func operate(sender: UIButton) {
-        let operation = sender.currentTitle!
-        if userIsInTheMiddleOfTypingANumber {
-            enter()
-        }
         if let operation = sender.currentTitle {
+            if userIsInTheMiddleOfTypingANumber {
+                if operation == "±" {
+                    let displayText = display.text!
+                    if (displayText.rangeOfString("-") != nil) {
+                        display.text = dropFirst(displayText)
+                    } else {
+                        display.text = "-" + displayText
+                    }
+                    return
+                }
+                enter()
+            }
             if let result = brain.performOperation(operation) {
                 displayValue = result
             } else {
-                displayValue = 0
+                displayValue = nil
             }
         }
-//        switch operation{
-//        case "+": performOperation { $0 * $1 }
-//        case "÷": performOperation { $1 / $0 }
-//        case "+": performOperation { $0 + $1 }
-//        case "-": performOperation { $1 - $0 }
-//        case "√": performOperation { sqrt($0)}
-//        case "·": performOperation { $1 + $0 / 10}
-//        case "sin": performOperation { sin($0)}
-//        case "cos": performOperation { cos($0)}
-//        
-//        default: break
-//      }
     }
-    
-    func performOperation(operation: (Double, Double) -> Double) {
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-            println(displayValue)
-            enter()
-        }
-    }
-    
-    private func performOperation(operation: Double -> Double) {
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
-            println(displayValue)
-            enter()
-        }
-    }
-
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
         if let result = brain.pushOperand(displayValue!) {
-            displayValue = result
+            
         } else {
-            displayValue = 0
+            
         }
+    }
+    
+    @IBAction func clear(sender: UIButton) {
+        displayValue = nil
+        historyLabel.text = ""
     }
     
     var displayValue: Double? {
         get {
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            return NSNumberFormatter().numberFromString(display.text!)?.doubleValue
         }
         set {
-            display.text = "\(newValue)"
+            if (newValue != nil) {
+                let numberFormatter = NSNumberFormatter()
+                numberFormatter.numberStyle = .DecimalStyle
+                numberFormatter.maximumFractionDigits = 10
+                display.text = numberFormatter.stringFromNumber(newValue!)
+            } else {
+                display.text = "0"
+            }
             userIsInTheMiddleOfTypingANumber = false
+            let stack = brain.showStack()
+            if !stack!.isEmpty {
+                historyLabel.text = join(decimalSeparator, stack!.componentsSeparatedByString(".")) + " ="
+            }
         }
     }
-
 }
+
 

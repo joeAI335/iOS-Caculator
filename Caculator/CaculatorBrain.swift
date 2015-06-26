@@ -85,6 +85,7 @@ class CaculatorBrain
                         return (operation(operand1, operand2), op2Evaluation.remainingOps)
                     }
                 }
+            default: break
             }
         }
         return(nil, ops)
@@ -114,18 +115,22 @@ class CaculatorBrain
         return evaluate()
     }
     
+    func showStack() -> String? {
+        return " ".join(opStack.map({ "\($0)" }))
+    }
+    
     var variableDict = [String:Double]()
     
-    var variableValues: [String:Double] {
-        get {
-            return variableDict
-        }
-        set {
-            if knowOps.remove{
-                var variableV = operandSymbolStack.removeLast()
-                variableDict["variableV"] =
-            }
-        }
-    }
+//    var variableValues: [String:Double] {
+//        get {
+//            return variableDict
+//        }
+//        set {
+//            if knowOps.remove{
+//                var variableV = operandSymbolStack.removeLast()
+//                variableDict["variableV"] =
+//            }
+//        }
+//    }
     
 }
