@@ -14,7 +14,7 @@ class CaculatorBrain
         case Operand(Double)
         case UnaryOperation(String, Double -> Double)
         case BinaryOperation(String, (Double, Double) -> Double)
-        case setValueOperation(String, (String, Double) -> Double)
+        case Variable(String)
         
         var description: String {
             get {
@@ -25,7 +25,7 @@ class CaculatorBrain
                     return symbol
                 case .BinaryOperation(let symbol, _):
                     return symbol
-                case .setValueOperation(let symbol, _):
+                case .Variable(let symbol):
                     return symbol
                 }
             }
@@ -35,6 +35,8 @@ class CaculatorBrain
     private var opStack = [Op]()
     
     private var knowOps = [String:Op]()
+    
+    var variableValues = [String:Double]()
     
     init() {
         knowOps["+"] = Op.BinaryOperation("+") { $0 + $1}
@@ -47,6 +49,7 @@ class CaculatorBrain
     
     var program: AnyObject {
         get {
+            
             return opStack.map { $0.description }
         }
         set {
@@ -85,6 +88,8 @@ class CaculatorBrain
                         return (operation(operand1, operand2), op2Evaluation.remainingOps)
                     }
                 }
+            case .Variable(let symbol):
+                return (variableValues[symbol], remainingOps)
             }
         }
         return(nil, ops)
@@ -100,6 +105,13 @@ class CaculatorBrain
         return evaluate()
     }
     
+    
+    func pushOperand(symbol: String) -> Double? {
+        opStack.append(Op.Variable(symbol))
+        return evaluate()
+    }
+
+    
     func performOperation(symbol: String) -> Double?{
         if let operation = knowOps[symbol] {
             opStack.append(operation)
@@ -109,23 +121,25 @@ class CaculatorBrain
     
     var operandSymbolStack = [String]()
     
-    func pushOperand(symbol: String) -> Double? {
-        operandSymbolStack.append(symbol)
-        return evaluate()
+    
+    
+    func showStack() -> String? {
+        return " ".join(opStack.map({ $0.description }))
     }
     
     var variableDict = [String:Double]()
     
-    var variableValues: [String:Double] {
-        get {
-            return variableDict
-        }
-        set {
-            if knowOps.remove{
-                var variableV = operandSymbolStack.removeLast()
-                variableDict["variableV"] =
-            }
-        }
-    }
+    
+//    var variableValues: [String:Double] {
+//        get {
+//            return variableDict
+//        }
+//        set {
+//            if knowOps.remove{
+//                var variableV = operandSymbolStack.removeLast()
+//                variableDict["variableV"] =
+//            }
+//        }
+//    }
     
 }
